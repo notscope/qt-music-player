@@ -213,6 +213,8 @@ class MainWindow(QMainWindow):
         playbackControlLayout.addWidget(self.progress_bar)
         playbackControlLayout.addWidget(self.playback_control)
         self.progress_bar.progressBar.sliderMoved.connect(self.position_changed)
+        self.player.positionChanged.connect(self.update_position)
+        self.player.durationChanged.connect(self.update_duration)
 
         mainLayout.addLayout(playbackLayout, 1)
 
@@ -306,7 +308,11 @@ class MainWindow(QMainWindow):
                 self.playback_control.button_stop.setDisabled(False)
 
     def position_changed(self, position):
-        print("Position changed to", position)
+        if self.progress_bar.progressBar.maximum() != self.player.duration():
+            self.progress_bar.progressBar.setMaximum(self.player.duration())
+
+        self.progress_bar.progressBar.setValue(position)
+        self.player.setPosition(position)
         
     def duration_changed(self, duration):
         self.progress_bar.progressBar.setRange(0, duration)
