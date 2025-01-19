@@ -20,19 +20,19 @@ from components.color import Color
 
 
 class PlaybackDetail(QWidget):
-    def __init__(self, title, artist, album):
+    def __init__(self):
         super().__init__()
         layout = QVBoxLayout()
         layout.setSpacing(7)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        self.titleLabel = QLabel(f"Title: {title}")
-        self.artistLabel = QLabel(f"Artist: {artist}")
-        self.albumLabel = QLabel(f"Album: {album}")
+        self.titleLabel = QLabel(f"Title: -")
+        self.artistLabel = QLabel(f"Artist: -")
+        self.albumLabel = QLabel(f"Album: -")
 
         font = QFont()
-        font.setPointSize(12)
+        font.setPointSize(14)
 
         self.titleLabel.setFont(font)
         self.artistLabel.setFont(font)
@@ -50,45 +50,6 @@ class PlaybackDetail(QWidget):
         self.artistLabel.setText(artist)
         self.albumLabel.setText(album)
 
-
-class InfoWidget(QWidget):
-    def __init__(self, title, artist, album):
-        super().__init__()
-        layout = QVBoxLayout()
-        layout.setSpacing(7)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.imageLabel = QLabel()
-        pixmap = QPixmap("placeholder.jpg")
-        pixmap = pixmap.scaled(250, 250, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)  # Set the size of the image
-        self.imageLabel.setPixmap(pixmap)
-        self.imageLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.titleLabel = QLabel(f"Title: {title}")
-        self.artistLabel = QLabel(f"Artist: {artist}")
-        self.albumLabel = QLabel(f"Album: {album}")
-
-        self.titleLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.artistLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.albumLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        layout.addWidget(self.imageLabel)
-        layout.addSpacing(65)
-        layout.addWidget(self.titleLabel)
-        layout.addWidget(self.artistLabel)
-        layout.addWidget(self.albumLabel)
-
-        self.setLayout(layout)
-
-    def update(self, title, artist, album, image_path):
-        self.titleLabel.setText(title)
-        self.artistLabel.setText(artist)
-        self.albumLabel.setText(album)
-    
-        pixmap = QPixmap(image_path)
-        pixmap = pixmap.scaled(250, 250, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)  # Set the size of the image
-        self.imageLabel.setPixmap(pixmap)
 
 class ProgressBar(QWidget):
     def __init__(self):
@@ -237,7 +198,7 @@ class MainWindow(QMainWindow):
         self.album_cover = albumCover()
 
 
-        self.playback_detail = PlaybackDetail("Song Title", "Artist Name", "Album Name")
+        self.playback_detail = PlaybackDetail()
         self.progress_bar = ProgressBar()
 
         mainLayout.addWidget(self.album_cover)
