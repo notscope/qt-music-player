@@ -4,5 +4,8 @@
         "pixmap",
         "Pixmap",
         "Unmuting"
-    ]
+    ],
+    "files.associations": {
+        "iostream": "cpp"
+    }
 }

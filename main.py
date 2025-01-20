@@ -89,18 +89,19 @@ class PlaybackControl(QWidget):
         media_button_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         self.button_play_pause = QPushButton()
-        self.button_play_pause.setIcon(QIcon("media-playback-start.svg"))
+        self.button_play_pause.setIcon(QIcon("icons/media-playback-start.svg"))
         self.button_play_pause.setFixedSize(50, 50)
         self.button_play_pause.setDisabled(True)
 
         
         self.button_stop = QPushButton()
-        self.button_stop.setIcon(QIcon("media-playback-stop.svg"))
+        self.button_stop.setIcon(QIcon("icons/media-playback-stop.svg"))
+        self.button_stop.setIcon(QIcon("icons/media-playback-stop.svg"))
         self.button_stop.setFixedSize(50, 50)
         self.button_stop.setDisabled(True)
 
         self.button_mute = QPushButton()
-        self.button_mute.setIcon(QIcon("audio-volume-high.svg"))
+        self.button_mute.setIcon(QIcon("icons/audio-volume-high.svg"))
         self.button_mute.setFixedSize(30, 30)
 
         self.volume_slider = QSlider(Qt.Orientation.Horizontal)
@@ -131,7 +132,7 @@ class albumCover(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.imageLabel = QLabel()
-        pixmap = QPixmap("placeholder.jpg")
+        pixmap = QPixmap("placeholder.png")
         pixmap = pixmap.scaled(250, 250, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation) 
         self.imageLabel.setPixmap(pixmap)
         self.imageLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -268,22 +269,23 @@ class MainWindow(QMainWindow):
                 self.album_cover.update(album_cover_path)
                 self.playback_detail.update(info_title, info_artist, info_album)
             else:
-                self.playback_detail.update(info_title, info_artist, info_album, "placeholder.jpg")
+                self.album_cover.update("placeholder.png")
+                self.playback_detail.update(info_title, info_artist, info_album)
 
             self.playback_control.button_play_pause.setDisabled(False)
             self.playback_control.button_stop.setDisabled(False)
             self.player.play()
-            self.playback_control.button_play_pause.setIcon(QIcon("media-playback-pause.svg"))
+            self.playback_control.button_play_pause.setIcon(QIcon("icons/media-playback-pause.svg"))
 
     def mute_audio(self):
         if self.audio.isMuted():
             print("Unmuting audio")
             self.audio.setMuted(False)
-            self.playback_control.button_mute.setIcon(QIcon("audio-volume-high.svg"))
+            self.playback_control.button_mute.setIcon(QIcon("icons/audio-volume-high.svg"))
         else:
             print("Muting audio")
             self.audio.setMuted(True)
-            self.playback_control.button_mute.setIcon(QIcon("audio-volume-muted.svg"))
+            self.playback_control.button_mute.setIcon(QIcon("icons/audio-volume-muted.svg"))
 
     def set_volume(self, position):
         print("Setting volume to", position)
@@ -292,19 +294,20 @@ class MainWindow(QMainWindow):
     def stop_audio(self):
         print("Stopping audio")
         self.player.stop()
-        self.playback_control.button_play_pause.setIcon(QIcon("media-playback-start.svg"))
+        self.playback_control.button_play_pause.setIcon(QIcon("icons/media-playback-start.svg"))
+        self.playback_control.butt
         self.playback_control.button_stop.setDisabled(True)
 
     def play_pause_audio(self):
         if self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
             print("Pausing audio")
             self.player.pause()
-            self.playback_control.button_play_pause.setIcon(QIcon("media-playback-start.svg"))
+            self.playback_control.button_play_pause.setIcon(QIcon("icons/media-playback-start.svg"))
         else:
             if self.current_audio_file:
                 print("Playing audio")
                 self.player.play()
-                self.playback_control.button_play_pause.setIcon(QIcon("media-playback-pause.svg"))
+                self.playback_control.button_play_pause.setIcon(QIcon("icons/media-playback-pause.svg"))
                 self.playback_control.button_stop.setDisabled(False)
 
     def position_changed(self, position):
