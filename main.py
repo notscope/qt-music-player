@@ -1,23 +1,32 @@
 import sys
-import os, hashlib
+import os
+import hashlib
+import tempfile
 
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 from mutagen.id3 import APIC, ID3
 
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
-
-import tempfile
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtCore import Qt, QUrl, QThread, pyqtSignal, QTime
 from PyQt6.QtGui import QColor, QPalette, QPixmap, QIcon, QAction, QDragEnterEvent, QDropEvent, QFont
 from PyQt6.QtWidgets import QApplication, QToolBar, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QSizePolicy, QFileDialog, QDialog, QMessageBox
 
-import vlc
-
 from components.about_dialog import AboutDialog
 from components.color import Color
 
+
+class ClickableSlider(QSlider):
+    def __init__(self, orientation, parent=None):
+        super().__init__(orientation, parent)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            value = self.minimum() + (self.maximum() - self.minimum()) * event.position().x() / self.width()
+            self.setValue(int(value))
+            event.accept()
+        super().mousePressEvent(event)
 
 class PlaybackDetail(QWidget):
     def __init__(self):
@@ -62,6 +71,7 @@ class ProgressBar(QWidget):
         self.totalLabel = QLabel("--:--")
         self.progressBar = QSlider(Qt.Orientation.Horizontal)
         self.progressBar.setRange(0, 100)
+        self.progressBar.setDisabled(True)
 
         layout.addWidget(self.currentLabel)
         layout.addWidget(self.progressBar)
@@ -214,6 +224,7 @@ class MainWindow(QMainWindow):
         playbackControlLayout.addWidget(self.progress_bar)
         playbackControlLayout.addWidget(self.playback_control)
         self.progress_bar.progressBar.sliderMoved.connect(self.position_changed)
+        # self.progress_bar.progressBar.valueChanged.connect(self.value_changed)
         self.player.positionChanged.connect(self.update_position)
         self.player.durationChanged.connect(self.update_duration)
 
@@ -319,6 +330,10 @@ class MainWindow(QMainWindow):
         
     def duration_changed(self, duration):
         self.progress_bar.progressBar.setRange(0, duration)
+    
+    def value_changed(self, position):
+        self.progress_bar.progressBar.setValue(position)
+        self.player.setPosition(position)
 
 
     def update_position(self, position):
