@@ -8,6 +8,8 @@ class AboutDialog(QDialog):
 
         self.setFixedSize(360, 120)
 
+        self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowCloseButtonHint | Qt.WindowType.WindowTitleHint)
+
         layout = QVBoxLayout()
 
         label_description = QLabel("This is a simple music player app")

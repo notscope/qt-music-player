@@ -13,6 +13,7 @@ from PyQt6.QtCore import Qt, QUrl, QThread, pyqtSignal, QTime
 from PyQt6.QtGui import QColor, QPalette, QPixmap, QIcon, QAction, QDragEnterEvent, QDropEvent, QFont
 from PyQt6.QtWidgets import QApplication, QToolBar, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QSizePolicy, QFileDialog, QDialog, QMessageBox
 
+
 from components.about_dialog import AboutDialog
 from components.color import Color
 
@@ -71,7 +72,6 @@ class ProgressBar(QWidget):
         self.totalLabel = QLabel("--:--")
         self.progressBar = QSlider(Qt.Orientation.Horizontal)
         self.progressBar.setRange(0, 100)
-        self.progressBar.setDisabled(True)
 
         layout.addWidget(self.currentLabel)
         layout.addWidget(self.progressBar)
@@ -206,6 +206,7 @@ class MainWindow(QMainWindow):
         self.playback_control.button_mute.clicked.connect(self.mute_audio)
         self.playback_control.volume_slider.sliderMoved.connect(self.set_volume)
 
+
         self.album_cover = albumCover()
 
 
@@ -234,7 +235,6 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         widget.setLayout(mainLayout)
         self.setCentralWidget(widget)
-        
 
     def onToolbarButtonClick(self, s):
         print("Button clicked", s)
@@ -300,13 +300,12 @@ class MainWindow(QMainWindow):
 
     def set_volume(self, position):
         print("Setting volume to", position)
-        self.audio.setVolume(position)
+        self.audio.setVolume(position * 0.01)
 
     def stop_audio(self):
         print("Stopping audio")
         self.player.stop()
         self.playback_control.button_play_pause.setIcon(QIcon("icons/media-playback-start.svg"))
-        self.playback_control.butt
         self.playback_control.button_stop.setDisabled(True)
 
     def play_pause_audio(self):
