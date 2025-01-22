@@ -204,8 +204,9 @@ class MainWindow(QMainWindow):
         self.playback_control.button_play_pause.clicked.connect(self.play_pause_audio)
         self.playback_control.button_stop.clicked.connect(self.stop_audio)
         self.playback_control.button_mute.clicked.connect(self.mute_audio)
-        self.playback_control.volume_slider.sliderMoved.connect(self.set_volume)
+        self.playback_control.volume_slider.valueChanged.connect(self.set_volume)
 
+        
 
         self.album_cover = albumCover()
 
