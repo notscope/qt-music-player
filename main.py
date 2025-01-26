@@ -224,8 +224,6 @@ class MainWindow(QMainWindow):
         self.progress_bar = ProgressBar()
         playbackControlLayout.addWidget(self.progress_bar)
         playbackControlLayout.addWidget(self.playback_control)
-        # self.progress_bar.progressBar.valueChanged.connect(self.position_changed)
-        # self.progress_bar.progressBar.valueChanged.connect(self.value_changed)
         self.player.positionChanged.connect(self.update_position)
         self.player.durationChanged.connect(self.update_duration)
 
@@ -235,9 +233,6 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         widget.setLayout(mainLayout)
         self.setCentralWidget(widget)
-
-    def onToolbarButtonClick(self, s):
-        print("Button clicked", s)
     
     def show_about_dialog(self):
         dialog = AboutDialog()
@@ -319,23 +314,10 @@ class MainWindow(QMainWindow):
                 self.player.play()
                 self.playback_control.button_play_pause.setIcon(QIcon("icons/media-playback-pause.svg"))
                 self.playback_control.button_stop.setDisabled(False)
-
-    def position_changed(self, position):
-        if self.progress_bar.progressBar.maximum() != self.player.duration():
-            self.progress_bar.progressBar.setMaximum(self.player.duration())
-        print("position changed to", position, "OR", position // 1000)
-        self.progress_bar.progressBar.setValue((position // 1000))
-        # self.progress_bar.progressBar.setValue(position)
-        # self.player.setPosition(position)
         
     def duration_changed(self, duration):
         print("Duration changed to", duration)
         self.progress_bar.progressBar.setRange(0, duration)
-    
-    def value_changed(self, position):
-        self.progress_bar.progressBar.setValue(position)
-        self.player.setPosition(position)
-
 
     def update_position(self, position):
         self.progress_bar.progressBar.setValue((position // 1000))
@@ -345,9 +327,6 @@ class MainWindow(QMainWindow):
         print("Duration changed to", duration // 1000)
         self.progress_bar.progressBar.setRange(0, (duration // 1000))
         self.progress_bar.totalLabel.setText(f"{duration // 60000}:{(duration // 1000) % 60:02}")
-
-    def update_state(self):
-        print("State changed")
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
