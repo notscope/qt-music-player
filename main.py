@@ -10,7 +10,7 @@ from mutagen.id3 import APIC, ID3
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QPixmap, QIcon, QAction, QDragEnterEvent, QDropEvent, QFont
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QFileDialog
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFileDialog
 
 from components.about_dialog import AboutDialog
 from components.slider import CustomSlider
@@ -38,12 +38,9 @@ class PlaybackDetail(QWidget):
         self.artistLabel = QLabel(f"Artist: -")
         self.albumLabel = QLabel(f"Album: -")
 
-
-
         self.titleLabel.setFont(font)
         self.artistLabel.setFont(font)
         self.albumLabel.setFont(font)
-
 
         layout.addWidget(self.titleLabel)
         layout.addWidget(self.artistLabel)
@@ -91,7 +88,6 @@ class PlaybackControl(QWidget):
         self.button_stop = QPushButton()
         self.button_mute = QPushButton()
 
-
         layout.setSpacing(5)
         audio_volume_layout.setSpacing(5)
         media_button_layout.setSpacing(10)
@@ -111,16 +107,13 @@ class PlaybackControl(QWidget):
         self.button_stop.setFixedSize(50, 50)
         self.button_mute.setFixedSize(30, 30)
 
-
         self.button_play_pause.setDisabled(True)
         self.button_stop.setDisabled(True)
-
 
         self.volume_slider = CustomSlider(Qt.Orientation.Horizontal)
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(100)
         self.volume_slider.setFixedWidth(100)
-
 
         media_button_layout.addWidget(self.button_play_pause)
         media_button_layout.addWidget(self.button_stop)
@@ -161,63 +154,39 @@ class albumCover(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        # set window options
         self.setWindowTitle("My App")
         self.setFixedSize(700, 300)
         self.setAcceptDrops(True)
 
-        # Audio and player
+        # Initialize audio and player
         self.player = QMediaPlayer()
         self.audio = QAudioOutput()
         self.player.setAudioOutput(self.audio)
 
-        # Widget
+        # Initialize widgets
         self.progress_bar = ProgressBar()
         self.album_cover = albumCover()
         self.playback_detail = PlaybackDetail()
         self.playback_control = PlaybackControl()
 
-        # Layout
+        # Initialize layouts
         mainLayout = QHBoxLayout()
         playbackLayout = QVBoxLayout()
         playbackControlLayout = QVBoxLayout()
 
-
-
         self.current_audio_file = None
         self.temp_files = []
 
-        button_open = QAction("&Open", self)
-        button_open.setStatusTip("Open a file")
-        button_open.triggered.connect(self.load_audio)
+        # Setup menu bar and actions
+        self.setup_menu_bar()
 
-        button_quit = QAction("&Quit", self)
-        button_quit.setStatusTip("Quit the application")
-        button_quit.triggered.connect(self.close)
-
-        menu = self.menuBar()
-        file_menu = menu.addMenu("&File")
-        file_menu.addAction(button_open)
-        file_menu.addSeparator()
-        file_menu.addAction(button_quit)
-
-        help_menu = menu.addMenu("&Help")
-        
-
-        button_about = QAction("&About", self)
-        button_about.setStatusTip("About")
-        button_about.triggered.connect(self.show_about_dialog)
-
-        help_menu.addAction(button_about)
-
+        # Setup layout
         mainLayout.setContentsMargins(10, 20, 10, 20)
-
-
         self.playback_control.button_play_pause.clicked.connect(self.play_pause_audio)
         self.playback_control.button_stop.clicked.connect(self.stop_audio)
         self.playback_control.button_mute.clicked.connect(self.mute_audio)
         self.playback_control.volume_slider.valueChanged.connect(self.set_volume)
-
-
 
         mainLayout.addWidget(self.album_cover)
         mainLayout.addSpacing(5)
@@ -234,54 +203,114 @@ class MainWindow(QMainWindow):
 
         mainLayout.addLayout(playbackLayout, 1)
 
-
         widget = QWidget()
         widget.setLayout(mainLayout)
         self.setCentralWidget(widget)
+
+    def setup_menu_bar(self):
+        menu = self.menuBar()
+        file_menu = menu.addMenu("&File")
+        help_menu = menu.addMenu("&Help")
+
+        button_open = QAction("&Open", self)
+        button_open.setStatusTip("Open a file")
+        button_open.triggered.connect(self.load_audio)
+        file_menu.addAction(button_open)
+
+        file_menu.addSeparator()
+
+        button_quit = QAction("&Quit", self)
+        button_quit.setStatusTip("Quit the application")
+        button_quit.triggered.connect(self.close)
+        file_menu.addAction(button_quit)
+
+        button_about = QAction("&About", self)
+        button_about.setStatusTip("About")
+        button_about.triggered.connect(self.show_about_dialog)
+        help_menu.addAction(button_about)
     
     def show_about_dialog(self):
         dialog = AboutDialog()
         dialog.exec()
     
+    def fetch_audio_info(self, file_name):
+        audio = MP3(file_name, ID3=EasyID3)
+        info_title = audio.get("title", ["Unknown"])[0]
+        info_artist = audio.get("artist", ["Unknown"])[0]
+        info_album = audio.get("album", ["Unknown"])[0]
+        info_genre = audio.get("genre", ["Unknown"])[0]
+
+        audio = MP3(file_name, ID3=ID3)
+        album_cover_path = None
+
+        for tag in audio.tags.values():
+            if isinstance(tag, APIC):
+                cover_hash = hashlib.md5(tag.data).hexdigest()
+                temp_dir = tempfile.gettempdir()
+                album_cover_path = os.path.join(temp_dir, f"{cover_hash}.jpg")
+
+                if not os.path.exists(album_cover_path):
+                    with open(album_cover_path, 'wb') as img:
+                        img.write(tag.data)
+                    self.temp_files.append(album_cover_path)
+                    print(self.temp_files)
+                    print("Created new album cover:", album_cover_path)
+                else:
+                    print("Using existing album cover:", album_cover_path)
+                break
+
+        print(album_cover_path)
+        if album_cover_path:
+            self.album_cover.update(album_cover_path)
+            self.playback_detail.update(info_title, info_artist, info_album)
+        else:
+            self.album_cover.update("placeholder.png")
+            self.playback_detail.update(info_title, info_artist, info_album)
+
+
     def load_audio(self, file_name=None):
         if not file_name:
-            file_name, _ = QFileDialog.getOpenFileName(self, "Open Audio File", "", "Audio Files (*.mp3 *.wav *.ogg)")
+            # wav and ogg is not supported yet
+            # file_name, _ = QFileDialog.getOpenFileName(self, "Open Audio File", "", "Audio Files (*.mp3 *.wav *.ogg)")
+            file_name, _ = QFileDialog.getOpenFileName(self, "Open Audio File", "", "Audio Files (*.mp3)")
         if file_name:
             self.current_audio_file = file_name
             self.player.setSource(QUrl.fromLocalFile(file_name))
             print("Loading", file_name)
-            audio = MP3(file_name, ID3=EasyID3)
-            info_title = audio.get("title", ["Unknown"])[0]
-            info_artist = audio.get("artist", ["Unknown"])[0]
-            info_album = audio.get("album", ["Unknown"])[0]
-            info_genre = audio.get("genre", ["Unknown"])[0]
+            self.fetch_audio_info(file_name)
+            # audio = MP3(file_name, ID3=EasyID3)
+            # info_title = audio.get("title", ["Unknown"])[0]
+            # info_artist = audio.get("artist", ["Unknown"])[0]
+            # info_album = audio.get("album", ["Unknown"])[0]
+            # info_genre = audio.get("genre", ["Unknown"])[0]
 
-            audio = MP3(file_name, ID3=ID3)
-            album_cover_path = None
+            # audio = MP3(file_name, ID3=ID3)
+            # album_cover_path = None
 
-            for tag in audio.tags.values():
-                if isinstance(tag, APIC):
-                    cover_hash = hashlib.md5(tag.data).hexdigest()
-                    temp_dir = tempfile.gettempdir()
-                    album_cover_path = os.path.join(temp_dir, f"{cover_hash}.jpg")
+            # for tag in audio.tags.values():
+            #     if isinstance(tag, APIC):
+            #         cover_hash = hashlib.md5(tag.data).hexdigest()
+            #         temp_dir = tempfile.gettempdir()
+            #         album_cover_path = os.path.join(temp_dir, f"{cover_hash}.jpg")
 
-                    if not os.path.exists(album_cover_path):
-                        with open(album_cover_path, 'wb') as img:
-                            img.write(tag.data)
-                        self.temp_files.append(album_cover_path)
-                        print(self.temp_files)
-                        print("Created new album cover:", album_cover_path)
-                    else:
-                        print("Using existing album cover:", album_cover_path)
-                    break
+            #         if not os.path.exists(album_cover_path):
+            #             with open(album_cover_path, 'wb') as img:
+            #                 img.write(tag.data)
+            #             self.temp_files.append(album_cover_path)
+            #             print(self.temp_files)
+            #             print("Created new album cover:", album_cover_path)
+            #         else:
+            #             print("Using existing album cover:", album_cover_path)
+            #         break
             
-            print(album_cover_path)
-            if album_cover_path:
-                self.album_cover.update(album_cover_path)
-                self.playback_detail.update(info_title, info_artist, info_album)
-            else:
-                self.album_cover.update("placeholder.png")
-                self.playback_detail.update(info_title, info_artist, info_album)
+            # print(album_cover_path)
+            # if album_cover_path:
+            #     self.album_cover.update(album_cover_path)
+            #     self.playback_detail.update(info_title, info_artist, info_album)
+            # else:
+            #     self.album_cover.update("placeholder.png")
+            #     self.playback_detail.update(info_title, info_artist, info_album)
+
 
             self.playback_control.button_play_pause.setDisabled(False)
             self.playback_control.button_stop.setDisabled(False)
@@ -347,7 +376,9 @@ class MainWindow(QMainWindow):
     def dropEvent(self, event: QDropEvent):
         for url in event.mimeData().urls():
             file_name = url.toLocalFile()
-            if file_name.lower().endswith(('.mp3', '.wav', '.ogg')):
+            # wav and ogg is not supported yet
+            # if file_name.lower().endswith(('.mp3', '.wav', '.ogg')):
+            if file_name.lower().endswith(('.mp3')):
                 self.load_audio(file_name)
                 break
 
