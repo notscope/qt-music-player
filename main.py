@@ -15,19 +15,19 @@ from PyQt6.QtWidgets import QApplication, QToolBar, QMainWindow, QWidget, QVBoxL
 
 
 from components.about_dialog import AboutDialog
-from components.color import Color
 
 
-# class ClickableSlider(QSlider):
-#     def __init__(self, orientation, parent=None):
-#         super().__init__(orientation, parent)
+class ClickableSlider(QSlider):
+    def __init__(self, orientation, parent=None):
+        super().__init__(orientation, parent)
 
-#     def mousePressEvent(self, event):
-#         if event.button() == Qt.MouseButton.LeftButton:
-#             value = self.minimum() + (self.maximum() - self.minimum()) * event.position().x() / self.width()
-#             self.setValue(int(value))
-#             event.accept()
-#         super().mousePressEvent(event)
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            value = self.minimum() + (self.maximum() - self.minimum()) * event.position().x() / self.width()
+            self.setValue(int(value))
+            self.sliderMoved.emit(int(value))
+            event.accept()
+        super().mousePressEvent(event)
 
 class PlaybackDetail(QWidget):
     def __init__(self):
@@ -70,7 +70,7 @@ class ProgressBar(QWidget):
 
         self.currentLabel = QLabel("--:--")
         self.totalLabel = QLabel("--:--")
-        self.progressBar = QSlider(Qt.Orientation.Horizontal)
+        self.progressBar = ClickableSlider(Qt.Orientation.Horizontal)  # Use ClickableSlider here
         self.progressBar.setRange(0, 100)
 
         layout.addWidget(self.currentLabel)
@@ -114,7 +114,7 @@ class PlaybackControl(QWidget):
         self.button_mute.setIcon(QIcon("icons/audio-volume-high.svg"))
         self.button_mute.setFixedSize(30, 30)
 
-        self.volume_slider = QSlider(Qt.Orientation.Horizontal)
+        self.volume_slider = ClickableSlider(Qt.Orientation.Horizontal)
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(100)
         self.volume_slider.setFixedWidth(100)
@@ -219,11 +219,10 @@ class MainWindow(QMainWindow):
         playbackLayout.addWidget(self.playback_detail)
         playbackLayout.addLayout(playbackControlLayout)
 
-
-
         self.progress_bar = ProgressBar()
         playbackControlLayout.addWidget(self.progress_bar)
         playbackControlLayout.addWidget(self.playback_control)
+        self.progress_bar.progressBar.sliderMoved.connect(self.change_position)
         self.player.positionChanged.connect(self.update_position)
         self.player.durationChanged.connect(self.update_duration)
 
@@ -303,6 +302,11 @@ class MainWindow(QMainWindow):
         self.playback_control.button_play_pause.setIcon(QIcon("icons/media-playback-start.svg"))
         self.playback_control.button_stop.setDisabled(True)
 
+    def change_position(self, value):
+        print("Position peewee to", value)
+        self.player.setPosition(value * 1000)
+
+
     def play_pause_audio(self):
         if self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
             print("Pausing audio")
@@ -320,6 +324,7 @@ class MainWindow(QMainWindow):
         self.progress_bar.progressBar.setRange(0, duration)
 
     def update_position(self, position):
+        # print("Position set to ", position)
         self.progress_bar.progressBar.setValue((position // 1000))
         self.progress_bar.currentLabel.setText(f"{position // 60000}:{(position // 1000) % 60:02}")
 
