@@ -93,27 +93,28 @@ class PlaybackControl(QWidget):
 
 
         layout.setSpacing(5)
-        layout.setContentsMargins(0, 0, 0, 0)
-
         audio_volume_layout.setSpacing(5)
-        audio_volume_layout.setContentsMargins(0, 0, 0, 0)
-        audio_volume_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
-
         media_button_layout.setSpacing(10)
+
+        layout.setContentsMargins(0, 0, 0, 0)
+        audio_volume_layout.setContentsMargins(0, 0, 0, 0)
         media_button_layout.setContentsMargins(0, 0, 0, 0)
+
+        audio_volume_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
         media_button_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         self.button_play_pause.setIcon(QIcon(ICON_PLAYBACK_START))
-        self.button_play_pause.setFixedSize(50, 50)
-        self.button_play_pause.setDisabled(True)
-
-        
         self.button_stop.setIcon(QIcon(ICON_PLAYBACK_STOP))
+        self.button_mute.setIcon(QIcon(ICON_VOLUME_HIGH))
+
+        self.button_play_pause.setFixedSize(50, 50)
         self.button_stop.setFixedSize(50, 50)
+        self.button_mute.setFixedSize(30, 30)
+
+
+        self.button_play_pause.setDisabled(True)
         self.button_stop.setDisabled(True)
 
-        self.button_mute.setIcon(QIcon(ICON_VOLUME_HIGH))
-        self.button_mute.setFixedSize(30, 30)
 
         self.volume_slider = CustomSlider(Qt.Orientation.Horizontal)
         self.volume_slider.setRange(0, 100)
