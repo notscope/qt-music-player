@@ -8,12 +8,12 @@ from mutagen.easyid3 import EasyID3
 from mutagen.id3 import APIC, ID3
 
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
-from PyQt6.QtSvg import QSvgRenderer
-from PyQt6.QtCore import Qt, QUrl, QThread, pyqtSignal, QTime
-from PyQt6.QtGui import QColor, QPalette, QPixmap, QIcon, QAction, QDragEnterEvent, QDropEvent, QFont
-from PyQt6.QtWidgets import QApplication, QToolBar, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QSizePolicy, QFileDialog, QDialog, QMessageBox
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtGui import QPixmap, QIcon, QAction, QDragEnterEvent, QDropEvent, QFont
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QFileDialog
 
 from components.about_dialog import AboutDialog
+from components.slider import CustomSlider
 
 ICON_PLAYBACK_START = "icons/media-playback-start.svg"
 ICON_PLAYBACK_STOP = "icons/media-playback-stop.svg"
@@ -21,28 +21,6 @@ ICON_PLAYBACK_PAUSE = "icons/media-playback-pause.svg"
 ICON_VOLUME_HIGH = "icons/audio-volume-high.svg"
 ICON_VOLUME_MUTE = "icons/audio-volume-muted.svg"
 
-
-class ClickableSlider(QSlider):
-    def __init__(self, orientation, parent=None):
-        super().__init__(orientation, parent)
-        self.scroll_enabled = True
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            value = self.minimum() + (self.maximum() - self.minimum()) * event.position().x() / self.width()
-            self.setValue(int(value))
-            self.sliderMoved.emit(int(value))
-            event.accept()
-        super().mousePressEvent(event)
-
-    def wheelEvent(self, event):
-        if self.scroll_enabled:
-            super().wheelEvent(event)
-        else:
-            event.ignore()
-
-    def setScrollEnabled(self, enabled):
-        self.scroll_enabled = enabled
 
 class PlaybackDetail(QWidget):
     def __init__(self):
@@ -52,12 +30,15 @@ class PlaybackDetail(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
+        # Configure font
+        font = QFont()
+        font.setPointSize(14)
+
         self.titleLabel = QLabel(f"Title: -")
         self.artistLabel = QLabel(f"Artist: -")
         self.albumLabel = QLabel(f"Album: -")
 
-        font = QFont()
-        font.setPointSize(14)
+
 
         self.titleLabel.setFont(font)
         self.artistLabel.setFont(font)
@@ -85,7 +66,7 @@ class ProgressBar(QWidget):
 
         self.currentLabel = QLabel("--:--")
         self.totalLabel = QLabel("--:--")
-        self.playbackSlider = ClickableSlider(Qt.Orientation.Horizontal)
+        self.playbackSlider = CustomSlider(Qt.Orientation.Horizontal)
         self.playbackSlider.setRange(0, 100)
         self.playbackSlider.setDisabled(True)
 
@@ -100,36 +81,41 @@ class PlaybackControl(QWidget):
     def __init__(self):
         super().__init__()
 
+        # Layout
         layout = QHBoxLayout()
+        audio_volume_layout = QHBoxLayout()
+        media_button_layout = QHBoxLayout()
+
+        # Button
+        self.button_play_pause = QPushButton()
+        self.button_stop = QPushButton()
+        self.button_mute = QPushButton()
+
+
         layout.setSpacing(5)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        audio_volume_layout = QHBoxLayout()
         audio_volume_layout.setSpacing(5)
         audio_volume_layout.setContentsMargins(0, 0, 0, 0)
         audio_volume_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
 
-        media_button_layout = QHBoxLayout()
         media_button_layout.setSpacing(10)
         media_button_layout.setContentsMargins(0, 0, 0, 0)
         media_button_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        self.button_play_pause = QPushButton()
         self.button_play_pause.setIcon(QIcon(ICON_PLAYBACK_START))
         self.button_play_pause.setFixedSize(50, 50)
         self.button_play_pause.setDisabled(True)
 
         
-        self.button_stop = QPushButton()
         self.button_stop.setIcon(QIcon(ICON_PLAYBACK_STOP))
         self.button_stop.setFixedSize(50, 50)
         self.button_stop.setDisabled(True)
 
-        self.button_mute = QPushButton()
         self.button_mute.setIcon(QIcon(ICON_VOLUME_HIGH))
         self.button_mute.setFixedSize(30, 30)
 
-        self.volume_slider = ClickableSlider(Qt.Orientation.Horizontal)
+        self.volume_slider = CustomSlider(Qt.Orientation.Horizontal)
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(100)
         self.volume_slider.setFixedWidth(100)
