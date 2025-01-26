@@ -18,16 +18,16 @@ from components.about_dialog import AboutDialog
 from components.color import Color
 
 
-class ClickableSlider(QSlider):
-    def __init__(self, orientation, parent=None):
-        super().__init__(orientation, parent)
+# class ClickableSlider(QSlider):
+#     def __init__(self, orientation, parent=None):
+#         super().__init__(orientation, parent)
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            value = self.minimum() + (self.maximum() - self.minimum()) * event.position().x() / self.width()
-            self.setValue(int(value))
-            event.accept()
-        super().mousePressEvent(event)
+#     def mousePressEvent(self, event):
+#         if event.button() == Qt.MouseButton.LeftButton:
+#             value = self.minimum() + (self.maximum() - self.minimum()) * event.position().x() / self.width()
+#             self.setValue(int(value))
+#             event.accept()
+#         super().mousePressEvent(event)
 
 class PlaybackDetail(QWidget):
     def __init__(self):
@@ -212,7 +212,6 @@ class MainWindow(QMainWindow):
 
 
         self.playback_detail = PlaybackDetail()
-        self.progress_bar = ProgressBar()
 
         mainLayout.addWidget(self.album_cover)
         mainLayout.addSpacing(5)
@@ -225,7 +224,7 @@ class MainWindow(QMainWindow):
         self.progress_bar = ProgressBar()
         playbackControlLayout.addWidget(self.progress_bar)
         playbackControlLayout.addWidget(self.playback_control)
-        self.progress_bar.progressBar.sliderMoved.connect(self.position_changed)
+        # self.progress_bar.progressBar.valueChanged.connect(self.position_changed)
         # self.progress_bar.progressBar.valueChanged.connect(self.value_changed)
         self.player.positionChanged.connect(self.update_position)
         self.player.durationChanged.connect(self.update_duration)
@@ -324,11 +323,13 @@ class MainWindow(QMainWindow):
     def position_changed(self, position):
         if self.progress_bar.progressBar.maximum() != self.player.duration():
             self.progress_bar.progressBar.setMaximum(self.player.duration())
-
-        self.progress_bar.progressBar.setValue(position)
-        self.player.setPosition(position)
+        print("position changed to", position, "OR", position // 1000)
+        self.progress_bar.progressBar.setValue((position // 1000))
+        # self.progress_bar.progressBar.setValue(position)
+        # self.player.setPosition(position)
         
     def duration_changed(self, duration):
+        print("Duration changed to", duration)
         self.progress_bar.progressBar.setRange(0, duration)
     
     def value_changed(self, position):
@@ -337,11 +338,12 @@ class MainWindow(QMainWindow):
 
 
     def update_position(self, position):
-        self.progress_bar.progressBar.setValue(position)
+        self.progress_bar.progressBar.setValue((position // 1000))
         self.progress_bar.currentLabel.setText(f"{position // 60000}:{(position // 1000) % 60:02}")
 
     def update_duration(self, duration):
-        self.progress_bar.progressBar.setRange(0, duration)
+        print("Duration changed to", duration // 1000)
+        self.progress_bar.progressBar.setRange(0, (duration // 1000))
         self.progress_bar.totalLabel.setText(f"{duration // 60000}:{(duration // 1000) % 60:02}")
 
     def update_state(self):
